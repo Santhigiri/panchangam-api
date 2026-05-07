@@ -1,4 +1,4 @@
-from moon_longitude import NAKSHATRA_BOUNDARIES, NAKSHATRA_NAMES
+from panchangam.constants import NAKSHATRA_BOUNDARIES, NAKSHATRA_NAMES
 
 
 def calc_nakshatra_from_lon(longitude: float)-> str:
