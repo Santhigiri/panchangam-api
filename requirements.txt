@@ -1,0 +1,7 @@
+Flask 
+Flask-cors 
+skyfield 
+pytz
+kollavarsham
+pandas
+
