@@ -82,6 +82,7 @@ def get_thithi(location: Topos, t: Time)-> str:
 
 
 def get_kollavarsham_details(
+    kv: kollavarsham.Kollavarsham,
     localdt: datetime,
     latitude_degrees: float,
     longitude_degrees: float,
@@ -114,6 +115,7 @@ def is_poornima(localdt: datetime,location: Topos, timezone: str)-> bool:
 
 
 def get_panchangam(
+    kv: kollavarsham.Kollavarsham,
     localdt: datetime,
     latitude_degrees: float,
     longitude_degrees: float,
@@ -127,6 +129,7 @@ def get_panchangam(
 
 
     kv_date  = get_kollavarsham_details(
+        kv=kv,
         localdt=localdt,
         latitude_degrees=latitude_degrees,
         longitude_degrees=longitude_degrees,
