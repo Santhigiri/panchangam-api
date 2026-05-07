@@ -53,7 +53,6 @@ class GetMonthlyPanchangamParams(BaseModel):
 def panchangam_monthly(
     params: Annotated[GetMonthlyPanchangamParams, Query()]
 ):
-    
     return get_monthly_panchangam(
         year=params.year,
         month=params.month,
