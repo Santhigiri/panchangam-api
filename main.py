@@ -2,6 +2,7 @@ import uvicorn
 from datetime import date, datetime
 from typing import Annotated
 from fastapi import FastAPI, Query
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import Field
 from pydantic.main import BaseModel
 
@@ -10,6 +11,14 @@ from panchangam.constants import DEFAULT_TIMEZONE, Coordinates
 from panchangam.get_monthly_panchangam import get_monthly_panchangam
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class GetPanchangamParams(BaseModel):
