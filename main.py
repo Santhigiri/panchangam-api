@@ -1,53 +1,68 @@
-from datetime import datetime
-import re
-from flask import Flask, jsonify, request
+import uvicorn
+from datetime import date, datetime
+from typing import Annotated
+from fastapi import FastAPI, Query
+from pydantic import Field
+from pydantic.main import BaseModel
 
 from panchangam.astronomical_calculations import get_panchangam
 from panchangam.constants import DEFAULT_TIMEZONE, Coordinates
 from panchangam.get_monthly_panchangam import get_monthly_panchangam
 
-app = Flask(__name__)
+app = FastAPI()
 
 
-@app.route('/panchangam', methods=['GET'])
-def panchangam():
-    date_str= request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
-    time_str = request.args.get('time', '00:00:00')
-    latitude= request.args.get('latitude', Coordinates.SG_LATITUDE)
-    longitude = request.args.get('longitude', Coordinates.SG_LONGITUDE)
-    timezone = request.args.get('timezone', 'Asia/Kolkata')
+class GetPanchangamParams(BaseModel):
+    date_str: date = datetime.now().date()
+    time_str: str = "00:00:00"
+    latitude: float = Coordinates.SG_LATITUDE
+    longitude: float = Coordinates.SG_LONGITUDE
+    timezone: str = DEFAULT_TIMEZONE
+
+
+@app.get('/panchangam')
+def panchangam(
+    params: Annotated[GetPanchangamParams, Query()]
+):
 
     try:
-        date = datetime.strptime(date_str, "%Y-%m-%d")
-        time = datetime.strptime(time_str, "%H:%M:%S").time()
+        date = datetime.strptime(str(params.date_str), "%Y-%m-%d")
+        time = datetime.strptime(params.time_str, "%H:%M:%S").time()
         localdt = datetime.combine(date, time)
     except ValueError:
-        return jsonify({'error': 'Invalid Date format. Use YYYY-MM-DD'}), 400
+        return {'error': 'Invalid Date format. Use YYYY-MM-DD'}, 400
 
 
     return get_panchangam(
         localdt=localdt,
-        latitude_degrees=float(latitude),
-        longitude_degrees=float(longitude),
-        timezone=timezone
+        latitude_degrees=params.latitude,
+        longitude_degrees=params.longitude,
+        timezone=params.timezone
     )
 
-@app.route('/panchangam/monthly', methods=['GET'])
-def panchangam_monthly():
-    year: int = int(request.args.get('year', datetime.now().year)) 
-    month: int = int(request.args.get('month', datetime.now().month)) 
-    latitude= float(request.args.get('latitude', Coordinates.SG_LATITUDE))
-    longitude = float(request.args.get('longitude', Coordinates.SG_LONGITUDE))
-    timezone = request.args.get('timezone', DEFAULT_TIMEZONE)
+
+
+class GetMonthlyPanchangamParams(BaseModel):
+    year: int = Field(ge=1900, le=2100)
+    month: int =  Field(ge=1,le=12)
+    latitude: float = Coordinates.SG_LATITUDE
+    longitude: float = Coordinates.SG_LONGITUDE
+    timezone: str = DEFAULT_TIMEZONE
+
+@app.get('/panchangam/monthly')
+def panchangam_monthly(
+    params: Annotated[GetMonthlyPanchangamParams, Query()]
+):
+    
     return get_monthly_panchangam(
-        year=year,
-        month=month,
-        latitude_degrees=latitude,
-        longitude_degrees=longitude,
-        timezone=timezone
+        year=params.year,
+        month=params.month,
+        latitude_degrees=params.latitude,
+        longitude_degrees=params.longitude,
+        timezone=params.timezone
     )
 
 
 
-if __name__ == "__main__": 
-    app.run(debug=True, port=8000)
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, log_level="info")
