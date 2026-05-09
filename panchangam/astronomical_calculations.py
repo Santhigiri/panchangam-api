@@ -58,8 +58,10 @@ def get_sidereal_longitude(location: Topos, t: Time, body: NDArray[Any]) -> floa
     year = dt[0].year if isinstance(dt, np.ndarray)  else dt.year
     month = dt[0].month if isinstance(dt, np.ndarray)  else dt.month
     day = dt[0].day if isinstance(dt, np.ndarray)  else dt.day
+    hour = dt[0].hour if isinstance(dt, np.ndarray)  else dt.hour
+
     logger.info(f"TROPICAL LONGITUDE: {tropical_longitude}")
-    ayanamsa = get_ayanamsa(year = year, month =  month, day=day)
+    ayanamsa = get_ayanamsa(year = year, month =  month, day=day, hour=hour)
     
     return (tropical_longitude - ayanamsa) % 360
 
@@ -68,7 +70,6 @@ def get_moon_sidereal_longitude(location: Topos, t: Time)-> float:
 
 def get_sun_sidereal_longitude(location: Topos, t: Time):
     return get_sidereal_longitude(location=location, t=t, body= sun)
-
 
 def get_nakshatra(location: Topos, t: Time)->str:
     # Calculate Moon's sidereal longitude
