@@ -24,5 +24,3 @@ def get_ayanamsa(
 
     return ayanamsa
 
-
-print(get_ayanamsa(2026,5,2,6))
