@@ -1,14 +1,16 @@
+from kollavarsham import Kollavarsham
 import uvicorn
+import logging
 from datetime import date, datetime
 from typing import Annotated
-from fastapi import FastAPI, Query
+from fastapi import Depends, FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import Field
 from pydantic.main import BaseModel
-
 from panchangam.astronomical_calculations import get_panchangam
 from panchangam.constants import DEFAULT_TIMEZONE, Coordinates
-from panchangam.get_monthly_panchangam import get_monthly_panchangam
+from panchangam.get_monthly_panchangam import get_kollavarasham, get_monthly_panchangam
+
 
 app = FastAPI()
 
@@ -31,7 +33,8 @@ class GetPanchangamParams(BaseModel):
 
 @app.get('/panchangam')
 def panchangam(
-    params: Annotated[GetPanchangamParams, Query()]
+    params: Annotated[GetPanchangamParams, Query()],
+    kv: Kollavarsham = Depends(get_kollavarasham)
 ):
 
     try:
@@ -43,6 +46,7 @@ def panchangam(
 
 
     return get_panchangam(
+        kv=kv,
         localdt=localdt,
         latitude_degrees=params.latitude,
         longitude_degrees=params.longitude,
@@ -60,9 +64,11 @@ class GetMonthlyPanchangamParams(BaseModel):
 
 @app.get('/panchangam/monthly')
 def panchangam_monthly(
-    params: Annotated[GetMonthlyPanchangamParams, Query()]
+    params: Annotated[GetMonthlyPanchangamParams, Query()],
+    kv: Kollavarsham = Depends(get_kollavarasham)
 ):
     return get_monthly_panchangam(
+        kv=kv,
         year=params.year,
         month=params.month,
         latitude_degrees=params.latitude,
