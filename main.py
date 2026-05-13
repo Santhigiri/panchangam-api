@@ -14,7 +14,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -51,8 +51,6 @@ def panchangam(
         timezone=params.timezone
     )
 
-
-
 class GetMonthlyPanchangamParams(BaseModel):
     year: int = Field(ge=1900, le=2100)
     month: int =  Field(ge=1,le=12)
@@ -73,6 +71,3 @@ def panchangam_monthly(
         longitude_degrees=params.longitude,
         timezone=params.timezone
     )
-
-
-
