@@ -5,5 +5,5 @@ pytz
 kollavarsham
 pandas
 pyswisseph
-jsii=1.129.0
+jsii==1.129.0
 
