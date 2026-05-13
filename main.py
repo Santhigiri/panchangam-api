@@ -1,7 +1,4 @@
 from kollavarsham import Kollavarsham
-import uvicorn
-import os
-import logging
 from datetime import date, datetime
 from typing import Annotated
 from fastapi import Depends, FastAPI, Query
