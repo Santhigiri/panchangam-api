@@ -1,4 +1,3 @@
-from kollavarsham import Kollavarsham
 from datetime import date, datetime
 from typing import Annotated
 from fastapi import Depends, FastAPI, Query
