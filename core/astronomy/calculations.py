@@ -1,26 +1,14 @@
 from datetime import datetime
 from functools import lru_cache
-import math
-from typing import Any, Tuple
 import numpy as np
-from numpy.typing import NDArray
 import pytz
 from pytz.exceptions import Error
-from skyfield import api
-from skyfield.api import Time, load, Topos
+from skyfield.api import Time
 from skyfield.framelib import ecliptic_frame
-from panchangam.constants import THITHI_NAMES, THITHI_NAMES_ML
-from panchangam.get_ayanamsa import get_ayanamsa
-from panchangam.utils import calc_nakshatra_from_lon
+from core.astronomy.ayanamsa import get_ayanamsa
 import pytz
 import logging
-
-ephem = load('de421.bsp')
-earth = ephem['earth']
-sun = ephem['sun']
-moon = ephem['moon']
-ts = api.load.timescale()
-
+from .ephemeris import sun, moon, earth, ts
 
 # 1. Configure Logging
 logging.basicConfig(
@@ -83,46 +71,3 @@ def get_sun_sidereal_longitude(
     timezone: str
     ):
     return get_sidereal_longitude(localdt=localdt, timezone=timezone, body= "sun")
-
-def get_nakshatra(localdt: datetime, timezone: str)->Tuple[str, float]:
-    # Calculate Moon's sidereal longitude
-    moon_sidereal_longitude = get_moon_sidereal_longitude(localdt=localdt, timezone=timezone)
-
-    # Determine Nakshatra using sidereal longitude
-    nakshatra = calc_nakshatra_from_lon(moon_sidereal_longitude)
-
-    return nakshatra, moon_sidereal_longitude
-
-def get_thithi(
-    localdt: datetime,
-    timezone: str
-)-> str:
-    # Thithi calculation
-    moon_sidereal_longitude = get_moon_sidereal_longitude(localdt, timezone)
-    sun_sidereal_longitude = get_sun_sidereal_longitude(localdt, timezone)
-    elongation = (moon_sidereal_longitude - sun_sidereal_longitude) % 360
-    thithi_number = math.floor(elongation / 12) + 1
-    if thithi_number > 30:
-        thithi_number = 30  # Amavasya
-    thithi_name = THITHI_NAMES[thithi_number - 1]
-    return thithi_name
-
-
-
-def is_poornima(localdt: datetime, timezone: str)-> bool:
-    night_time = datetime(
-        year=localdt.year,
-        month=localdt.month,
-        day=localdt.day,
-        hour=23,
-        minute=59,
-        second=59
-    )
-    thithi = get_thithi(night_time, timezone)
-
-    return thithi == "Pournami"
-
-def get_localdtz(localdt: datetime, timezone: str):
-    return pytz.timezone(timezone).localize(localdt)
-
-

@@ -1,10 +1,10 @@
 from datetime import datetime
 from typing import Any, Dict
 import pytz
-from skyfield.api import Time, Topos
-
-from panchangam.astronomical_calculations import get_moon_sidereal_longitude, get_nakshatra, get_sidereal_longitude, get_thithi, get_time, is_poornima
-from panchangam.get_kollavarsham import get_kollavarsham_date
+from core.astronomy.nakshatra import get_nakshatra
+from core.astronomy.thithi import get_thithi
+from core.astronomy.pournami import is_poornima
+from core.calendar.kollavarsham import get_kollavarsham_date
 
 
 def get_panchangam(
