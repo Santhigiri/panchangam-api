@@ -1,11 +1,7 @@
-from datetime import date, datetime
 from typing import Any, Dict
 import calendar
-from fastapi import Query
-from skyfield.api import Topos
-from panchangam.get_panchangam import get_panchangam
-from panchangam.get_sunrise_sunset import get_sunrise_sunset
-print(id(get_sunrise_sunset))
+from core.astronomy.sunrise_sunset import get_sunrise_sunset
+from core.calendar.panchangam import get_panchangam
 
 cal = calendar.Calendar(firstweekday=6)
 
@@ -34,6 +30,3 @@ def get_monthly_panchangam(
         data[day.isoformat()] = panchangam
     print(get_sunrise_sunset.cache_info())
     return data
-
-
-
