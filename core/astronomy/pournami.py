@@ -1,7 +1,8 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from .thithi import get_thithi
 
-def is_poornima(localdt: datetime, timezone: str)-> bool:
+
+def get_day_end_thithi(localdt: datetime, timezone: str)-> str:
     night_time = datetime(
         year=localdt.year,
         month=localdt.month,
@@ -11,4 +12,11 @@ def is_poornima(localdt: datetime, timezone: str)-> bool:
         second=59
     )
     thithi = get_thithi(night_time, timezone)
-    return thithi == "Pournami"
+    return thithi
+
+
+def is_poornima(localdt: datetime, timezone: str)-> bool:
+    previous_day = localdt - timedelta(days=-1)
+    previous_day_thithi = get_day_end_thithi(previous_day, timezone)
+    current_day_thithi = get_day_end_thithi(localdt, timezone)
+    return current_day_thithi == "Pournami" and previous_day_thithi != "Pournami"
