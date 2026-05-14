@@ -4,8 +4,8 @@ from skyfield.api import Topos
 from skyfield import almanac
 from datetime import date, datetime
 import pytz
-from panchangam.constants import DEFAULT_TIMEZONE, Coordinates
-from .astronomical_calculations import ephem, ts
+from core.constants import DEFAULT_TIMEZONE, Coordinates
+from core.astronomy.ephemeris import ephem, ts
 
 
 @lru_cache(maxsize=1000)
