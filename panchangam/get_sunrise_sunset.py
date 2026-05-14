@@ -1,14 +1,19 @@
-from typing import Tuple, Optional, Union
-from skyfield.api import load, Topos
+from typing import Tuple, Optional
+from functools import lru_cache
+from skyfield.api import Topos
 from skyfield import almanac
 from datetime import date, datetime
 import pytz
+from panchangam.constants import DEFAULT_TIMEZONE, Coordinates
+from .astronomical_calculations import ephem, ts
 
-# Load ephemeris data
-ts = load.timescale()
-ephem = load('de421.bsp')
 
-def get_sunrise_sunset(date: date, location: Topos, timezone: str) -> Tuple[datetime, datetime]:
+@lru_cache(maxsize=1000)
+def get_sunrise_sunset(
+        date: date,
+        latitude: float=round(Coordinates.SG_LATITUDE,3),
+        longitude: float = round(Coordinates.SG_LONGITUDE, 3),
+        timezone: str = DEFAULT_TIMEZONE) -> Tuple[datetime, datetime]:
     """
     Calculate sunrise and sunset times for a given date, location, and timezone.
 
@@ -23,12 +28,15 @@ def get_sunrise_sunset(date: date, location: Topos, timezone: str) -> Tuple[date
     Raises:
         ValueError: If sunrise or sunset times are unavailable.
     """
+    print(repr(latitude), repr(longitude), repr(timezone), repr(date))
     # Define the time range for the day (UTC)
     t0 = ts.utc(date.year, date.month, date.day)
     t1 = ts.utc(date.year, date.month, date.day + 1)
 
+    location = Topos(latitude_degrees=latitude, longitude_degrees=longitude)
+
     # Find sunrise and sunset times (UTC)
-    t, y = almanac.find_discrete(t0, t1, almanac.sunrise_sunset(ephem, location))
+    t, y = almanac.find_discrete(t0, t1, almanac.sunrise_sunset(ephem,location))
 
     # Convert to local timezone
     tz = pytz.timezone(timezone)
