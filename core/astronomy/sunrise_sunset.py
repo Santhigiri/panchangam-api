@@ -28,7 +28,6 @@ def get_sunrise_sunset(
     Raises:
         ValueError: If sunrise or sunset times are unavailable.
     """
-    print(repr(latitude), repr(longitude), repr(timezone), repr(date))
     # Define the time range for the day (UTC)
     t0 = ts.utc(date.year, date.month, date.day)
     t1 = ts.utc(date.year, date.month, date.day + 1)
