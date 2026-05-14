@@ -1,14 +1,11 @@
 from datetime import date, datetime
-from typing import Dict
+from typing import Any, Dict
 import calendar
 from fastapi import Query
-import kollavarsham
 from skyfield.api import Topos
-from panchangam.astronomical_calculations import get_panchangam
+from panchangam.get_panchangam import get_panchangam
 from panchangam.get_sunrise_sunset import get_sunrise_sunset
-
-def get_kollavarasham(latitude: float = Query(), longitude: float = Query()):
-    return kollavarsham.Kollavarsham(latitude=latitude, longitude=longitude, system="SuryaSiddhanta")
+print(id(get_sunrise_sunset))
 
 cal = calendar.Calendar(firstweekday=6)
 
@@ -18,32 +15,24 @@ def get_monthly_panchangam(
         latitude_degrees: float,
         longitude_degrees: float,
         timezone: str,
-        kv: kollavarsham.Kollavarsham
-    )-> Dict:
+    )-> Dict[str,Any]:
     data = {}
     for day in cal.itermonthdates(year, month):
         panchangam = {}
-        sunrise_dt, _ = get_sunrise_sunset(
+        sunrise_dt, sunset_dt = get_sunrise_sunset(
                 date =day,
-                location= Topos(latitude_degrees=latitude_degrees, longitude_degrees = longitude_degrees),
-                timezone=timezone
         )
-        localdt = datetime(
-            year=day.year,
-            month=day.month,
-            day=day.day,
-            hour=sunrise_dt.hour,
-            minute=sunrise_dt.minute,
-            second=sunrise_dt.second
-        )
+        localdt = sunrise_dt.replace(tzinfo=None)
         panchangam = get_panchangam(
-            kv=kv,
             localdt=localdt,
-            latitude_degrees=latitude_degrees,
-            longitude_degrees=longitude_degrees,
+            sunrise_dt=sunrise_dt,
+            sunset_dt = sunset_dt,
+            latitude=latitude_degrees,
+            longitude=longitude_degrees,
             timezone=timezone
         )
         data[day.isoformat()] = panchangam
+    print(get_sunrise_sunset.cache_info())
     return data
 
 
