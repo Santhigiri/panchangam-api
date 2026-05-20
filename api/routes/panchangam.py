@@ -1,6 +1,8 @@
 from typing import Annotated
 from fastapi import APIRouter, Query
 from datetime import datetime
+
+from pytz import timezone
 from core.astronomy.sunrise_sunset import get_sunrise_sunset
 from core.calendar.monthly_panchangam import get_monthly_panchangam
 from core.calendar.panchangam import get_panchangam
@@ -22,6 +24,9 @@ def panchangam(
         localdt = datetime.combine(date, time)
         sunrise_dt, sunset_dt = get_sunrise_sunset(
             date=date.date(),
+            latitude=latitude_degrees,
+            longitude=longitude_degrees,
+            timezone=params.timezone
         )
     except ValueError:
         return {'error': 'Invalid Date format. Use YYYY-MM-DD'}, 400

@@ -40,6 +40,23 @@ def get_tropical_longitude( t: Time, body: str) -> float:
     return tropical_longitude
 
 
+def get_sidereal_longitude_from_time(
+    t: Time,
+    body: str) -> float:
+    tropical_longitude = get_tropical_longitude(
+        t=t,
+        body=body
+    )
+    dt = t.utc_datetime()
+    year = dt[0].year if isinstance(dt, np.ndarray)  else dt.year
+    month = dt[0].month if isinstance(dt, np.ndarray)  else dt.month
+    day = dt[0].day if isinstance(dt, np.ndarray)  else dt.day
+    hour = dt[0].hour if isinstance(dt, np.ndarray)  else dt.hour
+
+    ayanamsa = get_ayanamsa(year = year, month =  month, day=day, hour=hour)
+    
+    return (tropical_longitude - ayanamsa) % 360
+
 def get_sidereal_longitude(
     localdt: datetime,
     timezone: str,

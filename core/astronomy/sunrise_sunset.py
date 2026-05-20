@@ -5,7 +5,7 @@ from skyfield import almanac
 from datetime import date, datetime
 import pytz
 from core.constants import DEFAULT_TIMEZONE, Coordinates
-from core.astronomy.ephemeris import ephem, ts
+from core.astronomy.ephemeris import ephem, ts, sun
 
 
 @lru_cache(maxsize=1000)
@@ -28,6 +28,8 @@ def get_sunrise_sunset(
     Raises:
         ValueError: If sunrise or sunset times are unavailable.
     """
+    horizon = 0.0 # for traditional panchang, the sun's horizon is taken as 0 degrees
+
     # Define the time range for the day (UTC)
     t0 = ts.utc(date.year, date.month, date.day)
     t1 = ts.utc(date.year, date.month, date.day + 1)
@@ -35,7 +37,12 @@ def get_sunrise_sunset(
     location = Topos(latitude_degrees=latitude, longitude_degrees=longitude)
 
     # Find sunrise and sunset times (UTC)
-    t, y = almanac.find_discrete(t0, t1, almanac.sunrise_sunset(ephem,location))
+    t, y = almanac.find_discrete(t0, t1, almanac.risings_and_settings(
+        ephemeris=ephem,
+        target= sun,
+        topos= location,
+        horizon_degrees= horizon
+    ))
 
     # Convert to local timezone
     tz = pytz.timezone(timezone)
