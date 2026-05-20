@@ -130,7 +130,7 @@ def calc_thithi_transition_for_date(date: date, timezone: str)-> List[ThithiTran
 
 
 
-    total_thithi_transitions = [transition for transition in total_thithi_transitions if transition.start_time.date() <= date and (transition.end_time is not None or transition.end_time.date() >= date)]
+    total_thithi_transitions = [transition for transition in total_thithi_transitions if transition.start_time.date() <= date and (transition.end_time is not None and transition.end_time.date() >= date)]
 
     return total_thithi_transitions
 
