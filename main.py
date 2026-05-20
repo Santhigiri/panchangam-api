@@ -2,7 +2,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.routes.panchangam import router as panchangam_router
 
-app = FastAPI()
+from utils.lifespan import lifespan
+
+PANCHANGAM_CACHE = {}
+
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

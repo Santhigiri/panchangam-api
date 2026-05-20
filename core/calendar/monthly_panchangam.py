@@ -1,11 +1,33 @@
+from datetime import date
 from typing import Any, Dict
 import calendar
+from core.astronomy.nakshatra_transition import get_nakshatra_transition_for_date
 from core.astronomy.sunrise_sunset import get_sunrise_sunset
-from core.calendar.panchangam import get_panchangam
+from core.astronomy.thithi_transition import get_thithi_transition_by_date
+from core.calendar.panchangam import PanchangamData, get_panchangam
+from utils.lifespan import PANCHANGAM_CACHE
 
 cal = calendar.Calendar(firstweekday=6)
 
+
 def get_monthly_panchangam(
+    year: int,
+    month: int,
+    latitude_degrees: float,
+    longitude_degrees: float,
+    timezone: str,
+)-> Dict[date, PanchangamData]:
+
+    data = {}
+    print(min(PANCHANGAM_CACHE.keys()))
+    print(max(PANCHANGAM_CACHE.keys()))
+    for day in cal.itermonthdates(year, month):
+        data[day] = PANCHANGAM_CACHE[day]
+
+    return data
+
+
+def get_monthly_panchangam_2(
         year: int, 
         month: int, 
         latitude_degrees: float,
@@ -28,5 +50,7 @@ def get_monthly_panchangam(
             timezone=timezone
         )
         data[day.isoformat()] = panchangam
-    print(get_sunrise_sunset.cache_info())
+    print(f"get_sunrise_sunset_cache: {get_sunrise_sunset.cache_info()}")
+    print(f"get_thithi_transition_by_date: {get_thithi_transition_by_date.cache_info()}")
+    print(f"get_nakshatra_transition_for_date: {get_nakshatra_transition_for_date.cache_info()}")
     return data
