@@ -81,8 +81,8 @@ def get_thithi_transition_by_date(date: date, timezone: str) -> List[ThithiTrans
     
     # Add the step_days attribute to the function
 
-    t0 = ts.utc(date.year, date.month, date.day, 0, 0, 0)
-    t1 = ts.utc(date.year, date.month, date.day, 23, 59, 59)
+    t0 = get_time(datetime.combine(date, time.min), timezone)
+    t1 = get_time(datetime.combine(date, time.max), timezone)
 
     t, values = find_discrete(t0, t1, get_thithi_transition)
 
@@ -130,7 +130,7 @@ def calc_thithi_transition_for_date(date: date, timezone: str)-> List[ThithiTran
 
 
 
-    total_thithi_transitions = [transition for transition in total_thithi_transitions if transition.start_time.date() <= date or (transition.end_time is not None and transition.end_time.date() >= date)]
+    total_thithi_transitions = [transition for transition in total_thithi_transitions if transition.start_time.date() <= date and (transition.end_time is not None or transition.end_time.date() >= date)]
 
     return total_thithi_transitions
 
