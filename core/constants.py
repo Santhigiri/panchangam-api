@@ -150,7 +150,7 @@ MALAYALAM_MONTH_ML = [
 ]
 
 class Coordinates:
-    SG_LATITUDE = 8.645
-    SG_LONGITUDE = 76.938
+    SG_LATITUDE: float = 8.645
+    SG_LONGITUDE: float = 76.938
 
 DEFAULT_TIMEZONE = 'Asia/Kolkata'

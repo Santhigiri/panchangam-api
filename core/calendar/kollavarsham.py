@@ -2,6 +2,8 @@ from datetime import date, timedelta
 from functools import lru_cache
 from typing import Dict, Any
 
+from pydantic import BaseModel
+
 from core.astronomy.calculations import (
     get_sun_sidereal_longitude,
 )
@@ -12,7 +14,6 @@ from core.constants import (
 )
 
 from core.astronomy.sunrise_sunset import get_sunrise_sunset
-print(id(get_sunrise_sunset))
 
 MALAYALAM_MONTHS = [
     "Medam",
@@ -28,6 +29,14 @@ MALAYALAM_MONTHS = [
     "Kumbham",
     "Meenam"
 ]
+
+class KollavarshamDate(BaseModel):
+    date: date
+    kv_day: int
+    kv_month: int
+    kv_year: int
+    kv_month_name_en: str
+    kv_month_name_ml: str
 
 
 def get_raasi(longitude: float) -> int:
@@ -69,7 +78,7 @@ def get_kollavarsham_date(
     latitude: float,
     longitude: float,
     timezone: str = DEFAULT_TIMEZONE
-) -> Dict[str, Any]:
+) -> KollavarshamDate:
 
 
     # Today's raasi at sunrise
@@ -102,7 +111,6 @@ def get_kollavarsham_date(
         malayalam_day += 1
         current_date = previous_date
 
-    malayalam_month = MALAYALAM_MONTH_ML[today_raasi]
 
     # Kollam Era year starts at Chingam
     if today_raasi >= 4:
@@ -111,11 +119,12 @@ def get_kollavarsham_date(
         kollam_year = dt.year - 825
 
     # Current solar longitude
-
-    return {
-        "kollam_year": kollam_year,
-        "malayalam_month": malayalam_month,
-        "malayalam_day": malayalam_day,
-        "raasi": today_raasi
-    }
+    return KollavarshamDate(
+        date= dt,
+        kv_year= kollam_year,
+        kv_month= today_raasi,
+        kv_day= malayalam_day,
+        kv_month_name_en=MALAYALAM_MONTHS[today_raasi],
+        kv_month_name_ml=MALAYALAM_MONTH_ML[today_raasi]
+    )
 
