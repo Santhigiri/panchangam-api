@@ -1,10 +1,11 @@
 from datetime import date
 from typing import Any, Dict
 import calendar
+from api.routes import panchangam
 from core.astronomy.nakshatra_transition import get_nakshatra_transition_for_date
 from core.astronomy.sunrise_sunset import get_sunrise_sunset
 from core.astronomy.thithi_transition import get_thithi_transition_by_date
-from core.calendar.panchangam import PanchangamData, get_panchangam
+from core.calendar.panchangam import PanchangamData, get_panchangam, get_panchangam_data
 from utils.lifespan import PANCHANGAM_CACHE
 
 cal = calendar.Calendar(firstweekday=6)
@@ -22,7 +23,12 @@ def get_monthly_panchangam(
     print(min(PANCHANGAM_CACHE.keys()))
     print(max(PANCHANGAM_CACHE.keys()))
     for day in cal.itermonthdates(year, month):
-        data[day] = PANCHANGAM_CACHE[day]
+        panchangam_data = PANCHANGAM_CACHE.get(day)
+        if panchangam_data is None:
+            panchangam_data = get_panchangam_data(day)
+            PANCHANGAM_CACHE[day] = panchangam_data
+
+        data[day] = panchangam_data
 
     return data
 
