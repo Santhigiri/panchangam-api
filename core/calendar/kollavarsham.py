@@ -14,6 +14,7 @@ from core.constants import (
 )
 
 from core.astronomy.sunrise_sunset import get_sunrise_sunset
+from utils.malayalam_masa import MalayalamMasa
 
 MALAYALAM_MONTHS = [
     "Medam",
@@ -118,13 +119,15 @@ def get_kollavarsham_date(
     else:
         kollam_year = dt.year - 825
 
+    malayalam_masa = MalayalamMasa.from_id(today_raasi + 1)
+
     # Current solar longitude
     return KollavarshamDate(
         date= dt,
         kv_year= kollam_year,
-        kv_month= today_raasi,
+        kv_month= malayalam_masa.id,
         kv_day= malayalam_day,
-        kv_month_name_en=MALAYALAM_MONTHS[today_raasi],
-        kv_month_name_ml=MALAYALAM_MONTH_ML[today_raasi]
+        kv_month_name_en=malayalam_masa.en,
+        kv_month_name_ml=malayalam_masa.ml
     )
 
