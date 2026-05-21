@@ -31,9 +31,9 @@ def get_time(localdt: datetime, timezone: str)-> Time:
 def get_tropical_longitude( t: Time, body: str) -> float:
     pos = None
     if body == 'moon':
-        pos = earth.at(t).observe(moon).apparent().frame_latlon(ecliptic_frame)
+        pos = earth.at(t).observe(moon).apparent().frame_latlon(ecliptic_frame) #pyright: ignore
     elif body == 'sun':
-        pos = earth.at(t).observe(sun).apparent().frame_latlon(ecliptic_frame)
+        pos = earth.at(t).observe(sun).apparent().frame_latlon(ecliptic_frame) #pyright: ignore
     else:
         raise Error("Invalid body. body should be 'moon' or 'sun'")
     tropical_longitude = float(pos[1].degrees) % 360

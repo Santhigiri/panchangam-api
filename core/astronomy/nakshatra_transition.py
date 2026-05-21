@@ -5,7 +5,7 @@ from typing import List
 from zoneinfo import ZoneInfo
 
 from numpy import ndarray
-from pydantic import BaseModel
+from pydantic import BaseModel, field_serializer
 from pytz import tzinfo
 from skyfield.almanac import find_discrete
 from skyfield.api import Time
@@ -15,13 +15,24 @@ from core.astronomy.ephemeris import ephem, ts
 
 from core.astronomy.thithi_transition import get_sidereal_longitude_from_time
 from core.constants import DEFAULT_TIMEZONE
-from utils.utils import calc_nakshatra_from_lon
+from utils.nakshatra import Nakshatra
+from utils.utils import calc_nakshatra_from_lon, calc_nakshatra_id_from_lon
 
 
 class NakshatraTransition(BaseModel):
     name: str
+    nakshatra: Nakshatra
     start_time: datetime
     end_time: datetime | None
+
+    @field_serializer('nakshatra')
+    def ser_nakshatra(self, n: Nakshatra):
+        return n.to_dict()
+
+def get_nakshatra_id(t: Time)-> int:
+    moon_sidereal_longitude = get_sidereal_longitude_from_time(t, "moon")
+    nakshatra_id = calc_nakshatra_id_from_lon(moon_sidereal_longitude)
+    return nakshatra_id
 
 def get_nakshatra(t: Time):
     moon_sidereal_longitude = get_sidereal_longitude_from_time(t, "moon")
@@ -38,7 +49,7 @@ def get_nakshatra_transition_for_date(date: date, timezone: str):
     t0 = get_time(datetime.combine(date, time.min), timezone)
     t1 = get_time(datetime.combine(date, time.max), timezone)
 
-    get_nakshatra_transition.step_days = 0.0007
+    get_nakshatra_transition.step_days = 0.0007 #pyright: ignore
 
     t, values = find_discrete(t0, t1, get_nakshatra_transition)
 
@@ -51,13 +62,15 @@ def get_nakshatra_transition_for_date(date: date, timezone: str):
         nakshatra_start_utc = ti.utc_datetime()
         nakshatra_start_tz: datetime = nakshatra_start_utc.astimezone(timezone_info)
         nakshatra_end_tz: datetime | None = None
-        nakshatra = get_nakshatra(ts.from_datetime(nakshatra_start_utc) + timedelta(minutes=10))
+        nakshatra_id = get_nakshatra_id(ts.from_datetime(nakshatra_start_utc) + timedelta(minutes=10))
+        nakshatra = Nakshatra.from_id(nakshatra_id)
         if i + 1 < len(transition_times):
             end_time = transition_times[i + 1]
             nakshatra_end_utc = end_time[0].utc_datetime() if isinstance(end_time, ndarray) else end_time.utc_datetime()
             nakshatra_end_tz = nakshatra_end_utc.astimezone(timezone_info)
         nakshatras_for_day.append(NakshatraTransition(
-            name= nakshatra,
+            name= nakshatra.en,
+            nakshatra = nakshatra,
             start_time=nakshatra_start_tz,
             end_time= nakshatra_end_tz
         ))
@@ -95,7 +108,7 @@ def calc_nakshatra_transition(date: date, timezone: str):
     t0 = ts.utc(date.year, date.month, date.day -1 , 0, 0, 0)
     t1 = ts.utc(date.year, date.month, date.day + 1 , 23, 59 , 59)
 
-    get_nakshatra_transition.step_days = 0.0007
+    get_nakshatra_transition.step_days = 0.0007 #pyright: ignore
 
     t, values = find_discrete(t0, t1, get_nakshatra_transition)
 
@@ -111,15 +124,17 @@ def calc_nakshatra_transition(date: date, timezone: str):
         nakshatra_start_utc = ti.utc_datetime()
         nakshatra_start_tz: datetime = nakshatra_start_utc.astimezone(timezone_info)
         nakshatra_end_tz: datetime | None = None
-        nakshatra = get_nakshatra(ts.from_datetime(nakshatra_start_utc) + timedelta(minutes=10))
+        nakshatra_id = get_nakshatra_id(ts.from_datetime(nakshatra_start_utc) + timedelta(minutes=10))
+        nakshatra = Nakshatra.from_id(nakshatra_id)
         end_time = transition_times[i + 1]
         nakshatra_end_utc = end_time[0].utc_datetime() if isinstance(end_time, ndarray) else end_time.utc_datetime()
         nakshatra_end_tz = nakshatra_end_utc.astimezone(timezone_info)
-        nakshatras_for_day.append({
-            "nakshatra_name": nakshatra,
-            "start_time": nakshatra_start_tz,
-            "end_time": nakshatra_end_tz
-        })
+        nakshatras_for_day.append(NakshatraTransition(
+            name = nakshatra.en,
+            nakshatra = nakshatra,
+            start_time = nakshatra_start_tz,
+            end_time = nakshatra_end_tz
+        ))
     
     return nakshatras_for_day
 

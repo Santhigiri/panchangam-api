@@ -1,7 +1,7 @@
 from datetime import date, datetime, timezone, timedelta, time
 from functools import lru_cache
 from typing import List
-from pydantic import BaseModel
+from pydantic import BaseModel, field_serializer
 from pytz.exceptions import Error
 from skyfield.almanac import ecliptic_frame, find_discrete
 from skyfield.api import Time
@@ -13,18 +13,24 @@ import numpy as np
 import math
 from core.constants import DEFAULT_TIMEZONE, THITHI_NAMES  # Python 3.9+
 from core.astronomy.ephemeris import earth, sun, moon
+from utils.thithi import Thithi
 
 class ThithiTransition(BaseModel):
     name: str
+    thithi: Thithi
     start_time: datetime
     end_time: datetime | None
+
+    @field_serializer("thithi")
+    def ser_thithi(self, t: Thithi):
+        return t.to_dict()
 
 def get_tropical_longitude( t: Time, body: str):
     pos = None
     if body == 'moon':
-        pos = earth.at(t).observe(moon).apparent().frame_latlon(ecliptic_frame)
+        pos = earth.at(t).observe(moon).apparent().frame_latlon(ecliptic_frame) #pyright: ignore
     elif body == 'sun':
-        pos = earth.at(t).observe(sun).apparent().frame_latlon(ecliptic_frame)
+        pos = earth.at(t).observe(sun).apparent().frame_latlon(ecliptic_frame) #pyright: ignore
     else:
         raise Error("Invalid body. body should be 'moon' or 'sun'")
     tropical_longitude = pos[1].degrees
@@ -58,6 +64,15 @@ def get_elongations(t: Time) -> float:
     #print(f"ELONGATION AT {t.utc_datetime()}: {elongation}")
     return elongation
 
+def get_thithi_id(
+    t: Time
+)-> int:
+    # Thithi calculation
+    elongation = get_elongations(t)
+    thithi_number = math.floor(elongation / 12) + 1
+    if thithi_number > 30:
+        thithi_number = 30  # Amavasya
+    return thithi_number
 
 def get_thithi(
     t: Time
@@ -77,7 +92,7 @@ def get_thithi_transition(t: Time) -> bool:
 
 @lru_cache(maxsize=1000)
 def get_thithi_transition_by_date(date: date, timezone: str) -> List[ThithiTransition]:
-    get_thithi_transition.step_days = 0.0007  # Step by 1 minute
+    get_thithi_transition.step_days = 0.0007  #pyright: ignore Step by 1 minute
     
     # Add the step_days attribute to the function
 
@@ -100,9 +115,11 @@ def get_thithi_transition_by_date(date: date, timezone: str) -> List[ThithiTrans
         if i + 1 != len(transition_times):
             utc_end_time = transition_times[i+1].utc_datetime()
             ist_end_time = utc_end_time.astimezone(ist_timezone)
-        thithi = get_thithi(ts.from_datetime(utc_start_time) + timedelta(minutes=10))
+        thithi_id = get_thithi_id(ts.from_datetime(utc_start_time) + timedelta(minutes=10))
+        thithi = Thithi.from_id(thithi_id)
         thithis_for_day.append(ThithiTransition(
-            name=thithi,
+            name=thithi.en,
+            thithi = thithi,
             start_time=ist_start_time,
             end_time=ist_end_time
         ))
@@ -137,7 +154,7 @@ def calc_thithi_transition_for_date(date: date, timezone: str)-> List[ThithiTran
 
 @lru_cache(maxsize=1000)
 def calc_thithi_transition(date: date, timezone: str):
-    get_thithi_transition.step_days = 0.0007  # Step by 1 minute
+    get_thithi_transition.step_days = 0.0007  #pyright: ignore Step by 1 minute
     
     # Add the step_days attribute to the function
 
@@ -160,10 +177,12 @@ def calc_thithi_transition(date: date, timezone: str):
         if i + 1 != len(transition_times):
             utc_end_time = transition_times[i+1].utc_datetime()
             ist_end_time = utc_end_time.astimezone(ist_timezone)
-        thithi = get_thithi(ts.from_datetime(utc_start_time) + timedelta(minutes=10))
+        thithi_id = get_thithi_id(ts.from_datetime(utc_start_time) + timedelta(minutes=10))
+        thithi = Thithi.from_id(thithi_id)
         if ist_end_time is not None:
             thithis_for_day.append({
-                "thithi_name": thithi,
+                "thithi_name": thithi.en,
+                "thithi": thithi,
                 "ist_start_time": ist_start_time,
                 "ist_end_time": ist_end_time
             })
@@ -171,6 +190,3 @@ def calc_thithi_transition(date: date, timezone: str):
 
     return thithis_for_day
 
-
-
-calc_thithi_transition_for_date(date(2026,5,1), DEFAULT_TIMEZONE)
